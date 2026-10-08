@@ -1,0 +1,11 @@
+# PDFs — large binaries, not tracked
+pdfs/
+
+# Intermediate pipeline artifacts — regenerable via batch_parse.py
+parsed_raw/
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/

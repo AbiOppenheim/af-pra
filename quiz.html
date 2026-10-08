@@ -384,7 +384,7 @@
 </head>
 <body>
 
-<div class="loading" id="loading">Loading questions.json…</div>
+<div class="loading" id="loading">Loading questions…</div>
 
 <header id="app-header" style="display:none">
   <h1>Agentforce Specialist</h1>
@@ -442,9 +442,20 @@
   <div class="results-sub" id="results-sub"></div>
   <div class="summary-nums" id="summary-nums"></div>
   <div class="results-grid" id="results-grid"></div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
     <button class="btn primary" onclick="reviewWrong()">Review wrong answers</button>
     <button class="btn" onclick="resetQuiz()">Reset all progress</button>
+  </div>
+  <div style="border-top:1px solid var(--border);padding-top:16px">
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Progress backup</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" onclick="exportProgress()">Save progress file</button>
+      <label class="btn" style="cursor:pointer;margin:0">
+        Load progress file
+        <input type="file" accept=".json" style="display:none" onchange="importProgress(event)">
+      </label>
+    </div>
+    <div style="font-size:12px;color:var(--text-dim);margin-top:8px">Use these to back up your progress and restore it on any device.</div>
   </div>
 </div>
 
@@ -687,17 +698,76 @@ function resetQuiz() {
   switchView('quiz');
 }
 
+// ─── Export / Import ─────────────────────────────────────────────────────────
+function exportProgress() {
+  const s = stats();
+  const payload = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    answered: s.answered,
+    correct: s.correct,
+    answers,
+    cursorIdx,
+    reviewQueue: reviewMode ? queue.map(i => questions[i].id) : null,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `agentblazer-progress-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importProgress(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.answers) throw new Error('Invalid file');
+      answers = data.answers;
+      if (data.reviewQueue) {
+        reviewMode = true;
+        buildQueue(data.reviewQueue);
+      } else {
+        reviewMode = false;
+        buildQueue(null);
+        if (typeof data.cursorIdx === 'number') cursorIdx = Math.min(data.cursorIdx, queue.length - 1);
+      }
+      saveState();
+      const s = stats();
+      alert(`Progress loaded: ${s.answered} answered, ${s.correct} correct.`);
+      switchView('quiz');
+    } catch(err) {
+      alert('Could not load file — make sure it\'s a valid progress backup.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // allow re-loading same file
+}
+
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 async function init() {
   const loadEl = document.getElementById('loading');
-  try {
-    const res = await fetch('questions.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    questions = await res.json();
-    if (!Array.isArray(questions) || !questions.length) throw new Error('Empty questions array');
-  } catch (e) {
-    loadEl.innerHTML = `<strong style="color:var(--wrong)">Failed to load questions.json</strong><br>
-      <span style="font-size:13px;color:var(--text-dim)">Make sure questions.json is in the same directory and you opened this via a local server (not file://).<br>
+  const DATA_SOURCES = ['app/data/unified_questions.json', 'questions.json'];
+  let loaded = false;
+  for (const src of DATA_SOURCES) {
+    try {
+      const res = await fetch(src);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (!Array.isArray(data) || !data.length) continue;
+      questions = data;
+      loaded = true;
+      console.log(`Loaded ${questions.length} questions from ${src}`);
+      break;
+    } catch (_) { /* try next source */ }
+  }
+  if (!loaded) {
+    loadEl.innerHTML = `<strong style="color:var(--wrong)">Failed to load questions</strong><br>
+      <span style="font-size:13px;color:var(--text-dim)">Expected <code>app/data/unified_questions.json</code> (pipeline output) or <code>questions.json</code> (legacy).<br>
       Run: <code style="background:var(--surface2);padding:2px 6px;border-radius:4px">python3 -m http.server 8080</code> then open <a href="http://localhost:8080/quiz.html" style="color:var(--accent)">http://localhost:8080/quiz.html</a></span>`;
     return;
   }
