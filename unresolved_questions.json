@@ -1,0 +1,38 @@
+[
+  {
+    "id": 26,
+    "question": "Universal Containers wants to reduce overall customer support handling time by minimizing the time spent typing routine answers for common questions in-chat, and reducing the post-chat analysis by suggesting values for case fields. Which combination of Agentforce for Service features enables this effort?",
+    "options": {
+      "A": "Einstein Reply Recommendations and Case Classification",
+      "B": "Einstein Reply Recommendations and Case Summaries",
+      "C": "Einstein Service Replies and Work Summaries"
+    },
+    "correctAnswer": "A",
+    "explanation": "Comprehensive and Detailed In-Depth Explanation:Universal Containers (UC) aims to streamline customer support by addressing two goals: reducing in-chat typing time for routine answers and minimizing post-chat analysis by auto-suggesting case field values. In Salesforce Agentforce for Service,Einstein Reply RecommendationsandCase Classification(Option A) are the ideal combination to achieve this. * Einstein Reply Recommendations: This feature uses AI to suggest pre-formulated responses based on chat context, historical data, and Knowledge articles. By providing agents with ready-to- use replies for common questions, it significantly reduces the time spent typing routine answers, directly addressing UC's first goal. * Case Classification: This capability leverages AI to analyze case details (e.g., chat transcripts) and suggest values for case fields (e.g., Subject, Priority, Resolution) during or after the interaction. By automating field population, it reduces post-chat analysis time, fulfilling UC's second goal. * Option B: While \"Einstein Reply Recommendations\" is correct for the first part, \"Case Summaries\" generates a summary of the case rather than suggesting specific field values. Summaries are useful for documentation but don't directly reduce post-chat field entry time. * Option C: \"Einstein Service Replies\" is not a distinct, documented feature in Agentforce (possibly a distractor for Reply Recommendations), and \"Work Summaries\" applies more to summarizing work orders or broader tasks, not case field suggestions in a chat context. * Option A: This combination precisely targets both in-chat efficiency (Reply Recommendations) and post-chat automation (Case Classification). Thus, Option A is the correct answer for UC's needs. References: * Salesforce Agentforce Documentation: \"Einstein Reply Recommendations\" (Salesforce Help: https://help.salesforce.com/s/articleView?id=sf.einstein_reply_recommendations.htm&type=5) * Salesforce Agentforce Documentation: \"Case Classification\" (Salesforce Help:https://help.salesforce. com/s/articleView?id=sf.case_classification.htm&type=5) * Trailhead: \"Agentforce for Service\" (https://trailhead.salesforce.com/content/learn/modules/agentforce- for-service)",
+    "sourceFile": "Salesforce.Agentforce-Specialist.v2025-09-22.q27.pdf",
+    "parsedOptions": {
+      "A": "correct",
+      "B": "correct",
+      "C": null
+    },
+    "quarantine_reason": "ambiguous_extraction"
+  },
+  {
+    "id": 103,
+    "question": "Universal Containers wants to reduce overall customer support handling time by minimizing the time spent typing routine answers for common questions in-chat, and reducing the post-chat analysis by suggesting values for case fields. Which combination of Agentforce for Service features enables this effort?",
+    "options": {
+      "A": "Einstein Reply Recommendations and Case Classification",
+      "B": "Einstein Reply Recommendations and Case Summaries",
+      "C": "Einstein Service Replies and Work Summaries"
+    },
+    "correctAnswer": "A",
+    "explanation": "Universal Containers (UC) aims to streamline customer support by addressing two goals: reducing in-chat typing time for routine answers and minimizing post-chat analysis by auto- suggesting case field values. In Salesforce Agentforce for Service, Einstein Reply Recommendations and Case Classification (Option A) are the ideal combination to achieve this. * Einstein Reply Recommendations: This feature uses AI to suggest pre-formulated responses based on chat context, historical data, and Knowledge articles. By providing agents with ready-to-use replies for common questions, it significantly reduces the time spent typing routine answers, directly addressing UC's first goal. * Case Classification: This capability leverages AI to analyze case details (e.g., chat transcripts) and suggest values for case fields (e.g., Subject, Priority, Resolution) during or after the interaction. By automating field population, it reduces post-chat analysis time, fulfilling UC's second goal. * Option B: While \"Einstein Reply Recommendations\" is correct for the first part, \"Case Summaries\" generates a summary of the case rather than suggesting specific field values. Summaries are useful for documentation but don't directly reduce post-chat field entry time. * Option C: \"Einstein Service Replies\" is not a distinct, documented feature in Agentforce (possibly a distractor for Reply Recommendations), and \"Work Summaries\" applies more to summarizing work orders or broader tasks, not case field suggestions in a chat context. * Option A: This combination precisely targets both in-chat efficiency (Reply Recommendations) and post-chat automation (Case Classification). Thus, Option A is the correct answer for UC's needs. : Salesforce Agentforce Documentation: \"Einstein Reply Recommendations\" (Salesforce Help: https://help. salesforce.com/s/articleView?id=sf.einstein_reply_recommendations.htm&type=5) Salesforce Agentforce Documentation: \"Case Classification\" (Salesforce Help: https://help.salesforce.com/s /articleView?id=sf.case_classification.htm&type=5) Trailhead: \"Agentforce for Service\" (https://trailhead.salesforce.com/content/learn/modules/agentforce-for- service)",
+    "sourceFile": "Salesforce.Agentforce-Specialist.v2026-04-15.q124.pdf",
+    "parsedOptions": {
+      "A": "correct",
+      "B": "correct",
+      "C": null
+    },
+    "quarantine_reason": "ambiguous_extraction"
+  }
+]

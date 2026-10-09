@@ -8,11 +8,14 @@ Usage:
     python3 parse_pdf.py --pdf /path/to/custom.pdf --out questions.json
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 try:
     import pdfplumber
@@ -83,7 +86,65 @@ ANSWER_PATTERNS = [
 ]
 
 
+_OPT_SECTION_RE = re.compile(r"(?:[-*]\s*)?[Oo]ption\s*([A-F])\s*:?\s*")
+
+_CORRECT_MARKERS = [
+    re.compile(r"\bThis\s+is\s+the\s+correct\s+answer\b", re.IGNORECASE),
+    re.compile(r"\bThis\s+is\s+correct\b", re.IGNORECASE),
+    re.compile(r"\bis\s+the\s+correct\s+answer\b", re.IGNORECASE),
+    re.compile(r"\bcorrect\s+answer\b", re.IGNORECASE),
+    re.compile(r"\bThis\s+option\s+is\s+correct\b", re.IGNORECASE),
+    re.compile(r"\bOption\s*[A-F]\s*is\s+(?:the\s+)?correct\b", re.IGNORECASE),
+    re.compile(r"\bis\s+correct\b", re.IGNORECASE),
+]
+
+_INCORRECT_MARKERS = [
+    re.compile(r"\bis\s+incorrect\b", re.IGNORECASE),
+    re.compile(r"\bThis\s+option\s+is\s+incorrect\b", re.IGNORECASE),
+    re.compile(r"\bincorrect\s+because\b", re.IGNORECASE),
+    re.compile(r"\bnot\s+(?:the\s+)?correct\b", re.IGNORECASE),
+    re.compile(r"\bdoes\s+not\s+(?:align|apply|relate|match)\b", re.IGNORECASE),
+]
+
+
+def parse_option_sections(explanation: str) -> dict[str, Optional[str]]:
+    normed = re.sub(r"\s+", " ", explanation).strip()
+    boundaries: list[tuple[str, int]] = []
+    for m in _OPT_SECTION_RE.finditer(normed):
+        boundaries.append((m.group(1).upper(), m.start()))
+    if not boundaries:
+        return {}
+    segments: dict[str, str] = {}
+    for i, (letter, start) in enumerate(boundaries):
+        end = boundaries[i + 1][1] if i + 1 < len(boundaries) else len(normed)
+        segments[letter] = normed[start:end]
+    result: dict[str, Optional[str]] = {}
+    for letter, seg in segments.items():
+        is_correct = any(p.search(seg) for p in _CORRECT_MARKERS)
+        is_incorrect = any(p.search(seg) for p in _INCORRECT_MARKERS)
+        if is_correct and not is_incorrect:
+            result[letter] = "correct"
+        elif is_incorrect and not is_correct:
+            result[letter] = "incorrect"
+        else:
+            result[letter] = None
+    return result
+
+
+def _validate_option_statuses(statuses: dict[str, Optional[str]]) -> tuple[bool, str]:
+    correct_options = [k for k, v in statuses.items() if v == "correct"]
+    if len(correct_options) == 1:
+        return True, correct_options[0]
+    return False, ""
+
+
 def extract_correct_answer(text: str) -> str:
+    # Try structured option-section extraction first
+    statuses = parse_option_sections(text)
+    if statuses:
+        is_valid, letter = _validate_option_statuses(statuses)
+        if is_valid:
+            return letter
     for pat in ANSWER_PATTERNS:
         m = pat.search(text)
         if m:
@@ -197,24 +258,21 @@ def parse_questions(full_text: str) -> list[dict]:
         body = block[: divider_match.start()]
         explanation_raw = block[divider_match.end():]
 
-        # Determine correct answer
-        # "LEAVE A REPLY" format encodes the letter directly in the divider
+        # Determine correct answer — prefer explanation-based extraction over
+        # the LEAVE A REPLY divider letter, which can be wrong in source data.
         explicit_answer = divider_match.group(1)  # None for (SHOW ANSWER)
-        if explicit_answer:
+        explanation_lines = clean_lines(explanation_raw)
+        explanation_text = " ".join(explanation_lines)
+        correct = extract_correct_answer(explanation_text)
+        if not correct and explicit_answer:
             correct = explicit_answer.upper()
-        else:
-            explanation_lines = clean_lines(explanation_raw)
-            explanation_text = " ".join(explanation_lines)
-            correct = extract_correct_answer(explanation_text)
 
         # Parse question + options from body
         question_text, options = parse_options_and_question(body)
 
         # If no correct answer yet, try matching option text content against explanation
         if not correct and options:
-            explanation_lines2 = clean_lines(explanation_raw)
-            explanation_text2 = " ".join(explanation_lines2)
-            correct = infer_answer_from_options(explanation_text2, options)
+            correct = infer_answer_from_options(explanation_text, options)
 
         # If question text is empty, try to recover it from the PREVIOUS block's tail
         # (happens when the question text ends a page before the options start on the next)
